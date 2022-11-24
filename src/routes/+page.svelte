@@ -94,8 +94,12 @@
 
     function define(word: string) {
         return fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word)
-            .then((response) => response.json())
-            .then((data: Array<any>) => definition = data?.at(0).meanings[0].definitions[0].definition)
+            .then((response) => response.ok === true ? response.json() : null)
+            .then((data: Array<any>) => {
+                if (data != null) {
+                    definition = data.at(0).meanings[0].definitions[0].definition
+                }
+            })
     }
 
     function hide(word: string): string {
@@ -142,8 +146,6 @@
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
         } catch (e) {
             throttle = false;
-            console.error(e);
-
             await reset()
         }
     }
@@ -154,26 +156,37 @@
         }
     }
 
-    async function compare(event: any) {
+    async function enter(event: any) {
+        if (event.key === 'Enter' && input.length !== 0) {
+            event.preventDefault();
+            complete();
+        }
+    }
+
+    async function timeAndQuickEnd(event: any) {
         if (start === -1) {
             start = Date.now();
         }
 
-        if ((quickEnd === true && input.toLowerCase() === word) || (event.key === 'Enter' && input.length !== 0)) {
+        if ((quickEnd === true && input.toLowerCase() === word)) {
             event.preventDefault();
-            disabled = true;
-            hintShown = true;
-
-            reduced = word;
-            end = Date.now();
-
-            if (input.toLowerCase() === word) {
-                document.getElementById('input')?.classList.replace('text-white', 'text-green-500');
-                return;
-            }
-
-            document.getElementById('input')?.classList.replace('text-white','text-red-500');
+            complete();
         }
+    }
+
+    async function complete() {
+        disabled = true;
+        hintShown = true;
+
+        reduced = word;
+        end = Date.now();
+
+        if (input.toLowerCase() === word) {
+            document.getElementById('input')?.classList.replace('text-white', 'text-green-500');
+            return;
+        }
+
+        document.getElementById('input')?.classList.replace('text-white','text-red-500');
     }
 
     function handleGlobalKeyDown(event: any) {
@@ -237,7 +250,10 @@
                 disabled={disabled}
                 autofocus
                 bind:value={input}
-                on:keyup={compare}
+                on:input={timeAndQuickEnd}
+                on:keydown={enter}
+                spellcheck={false}
+                enterkeyhint={'done'}
             />
             <button id="reset" 
                 on:keydown={handleResetKeyDown} 
