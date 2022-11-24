@@ -10,6 +10,9 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <meta name="title" content="Exponentia"/>
+    <meta name="og:title" content="Exponentia"/>
+    <meta name="og:url" content="exponie.me"/>
+    <meta name="og:type" content="website"/>
     <meta name="description" content="A minimalist's spelling test website. Challenge your vocabulary, works in limited offline."/>
     <meta name="og:description" content="A minimalist's spelling test website. Challenge your vocabulary, works in limited offline."/>
     <meta name="og:image" content="/banner.png"/>
