@@ -255,9 +255,9 @@
             href="https://github.com/ShindouMihou/Exponentia" 
             alt="Exponentia GitHub"
         >EXPONENTIA</a>
-        <p><span class="p-1 bg-white text-black hidden xl:inline">TAB + ENTER</span> : next word</p>
+        <p class="hidden xl:inline"><span class="p-1 bg-white text-black">TAB + ENTER</span> : next word</p>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p on:click={toggleAlwaysShowHint} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.93rem] bg-white text-black hidden lg:inline">SHIFT + 1</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
+        <p on:click={toggleAlwaysShowHint} class="lg:mt-1 hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] bg-white text-black hidden lg:inline">SHIFT + 1</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <p on:click={toggleQuickEnd} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline">SHIFT + 2</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
         {#if offline}
