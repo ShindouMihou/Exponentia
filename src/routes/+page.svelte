@@ -28,14 +28,22 @@
        {
            if (navigator.onLine) {
                 fetch('/hello.txt')
-                    .then((response) => { if (response.ok)  { offline = false } else { setOffline() } })
-                    .catch((e) => setOffline())
+                    .then((response) => { if (response.ok)  { offline = false } else { if (!offline) { setOffline() } } })
+                    .catch((e) => { if (!offline) { setOffline() } })
            } else {
-               setOffline();
+               if (!offline) {
+                setOffline();
+               }
            }
        },
         15 * 1000
     )
+
+    let fasterOfflineTimer = setInterval(() => {
+        if (!navigator.onLine && !offline) {
+            setOffline()
+        }
+    })
 
     onDestroy(() => clearInterval(offlineTimer));
 
