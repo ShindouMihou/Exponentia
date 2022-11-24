@@ -22,7 +22,7 @@
     let offline = false;
 
     let alwaysShowHint = false;
-    let quickEnd = false;
+    let quickEnd = true;
     
     let offlineTimer = setInterval(() => 
        {
@@ -43,7 +43,7 @@
         alwaysShowHint = localStorage.getItem('always_show_hint') === 'true'
         hintShown = alwaysShowHint;
 
-        quickEnd = localStorage.getItem('quick_end') === 'true'
+        quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
 
         if (localStorage.getItem('dataset') == null) {
             await fetch('/dataset/words.txt')
