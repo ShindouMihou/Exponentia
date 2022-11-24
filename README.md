@@ -1,4 +1,9 @@
-<div align="center">a minimalist's choice of spelling test.</div>
+<div align="center">
+
+  ![Exponie](https://exponie.me/banner.png)
+
+  a minimalist's choice of spelling test.
+</div>
 
 ##
 
