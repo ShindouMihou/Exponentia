@@ -255,10 +255,11 @@
             href="https://github.com/ShindouMihou/Exponentia" 
             alt="Exponentia GitHub"
         >EXPONENTIA</a>
-        <p><span class="p-1 bg-white text-black">TAB + ENTER</span> : next word</p>
+        <p><span class="p-1 bg-white text-black hidden xl:block">TAB + ENTER</span> : next word</p>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p class="mt-1" ><span class="p-1 px-[0.93rem] bg-white text-black">SHIFT + 1</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
-        <p class="mt-1" ><span class="p-1 px-[0.87rem] bg-white text-black">SHIFT + 2</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
+        <p on:click={toggleAlwaysShowHint} class="mt-1" ><span class="p-1 px-[0.93rem] bg-white text-black xl:hidden">SHIFT + 1</span><span class="p-1 px-[0.93rem] bg-white text-black hidden xl:block">CLICK</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <p on:click={toggleQuickEnd} class="mt-1" ><span class="p-1 px-[0.87rem] bg-white text-black xl:hidden">SHIFT + 2</span><span class="p-1 px-[0.93rem] bg-white text-black hidden xl:block">CLICK</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
         {#if offline}
         <p class="mt-1"><span class="p-1 px-[1.07rem] bg-red-500 text-black">OFFLINE</span> : definitions are disabled, hint is always shown.</p>
         {/if}
