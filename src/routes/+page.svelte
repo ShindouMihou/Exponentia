@@ -98,6 +98,9 @@
             .then((data: Array<any>) => {
                 if (data != null) {
                     definition = data.at(0).meanings[0].definitions[0].definition
+                } else {
+                    definition = "No definition found.";
+                    throw { error: "No definition found, this exception is intentional." }
                 }
             })
     }
