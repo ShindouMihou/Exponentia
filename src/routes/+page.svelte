@@ -29,9 +29,9 @@
            if (navigator.onLine) {
                 fetch('/hello.txt')
                     .then((response) => { if (response.ok)  { offline = false } else { setOffline() } })
-                    .catch((e) => offline = false)
+                    .catch((e) => setOffline())
            } else {
-               offline = true;
+               setOffline();
            }
        },
         15 * 1000
@@ -280,7 +280,7 @@
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <p on:click={toggleQuickEnd} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline">SHIFT + 2</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
         {#if offline}
-        <p class="mt-1"><span class="p-1 px-[1.07rem] bg-red-500 text-black">OFFLINE</span> : definitions are disabled, hint is always shown.</p>
+        <p class="mt-1"><span class="p-1 px-[1.07rem] bg-red-500 text-black">OFFLINE</span> : definitions are disabled, hint is shown.</p>
         {/if}
     </div>
 </div>
