@@ -43,9 +43,9 @@
         if (!navigator.onLine && !offline) {
             setOffline()
         }
-    })
+    }, 2 * 1000)
 
-    onDestroy(() => clearInterval(offlineTimer));
+    onDestroy(() => { clearInterval(offlineTimer); clearInterval(fasterOfflineTimer); });
 
     onMount(async () => {
         alwaysShowHint = localStorage.getItem('always_show_hint') === 'true'
