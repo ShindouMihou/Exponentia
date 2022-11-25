@@ -323,11 +323,11 @@
             <!-- svelte-ignore a11y-autofocus -->
             <input 
                 id="input"
-                type="email"
+                type="text"
+                inputmode="email"
                 class="outline-none max-w-lg my-6 bg-black text-white duration-300 ease-in-out font-bold placeholder:text-gray-500 w-full text-2xl text-center" 
                 placeholder="word"
-                disabled={disabled}
-                autofocus
+                readonly={disabled}
                 bind:value={input}
                 on:input={timeAndQuickEnd}
                 on:keydown={enter}
