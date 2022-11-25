@@ -73,6 +73,7 @@
 
         speech = new SpeechSynthesisUtterance()
         speech.lang = 'en'
+        speech.rate = 1.05
 
         reset();
     });
