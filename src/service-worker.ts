@@ -1,4 +1,6 @@
 // from https://github.com/tretapey/svelte-pwa/blob/master/public/service-worker.js
+// and https://github.com/Myrmod/SvelteKit-offline/blob/master/src/service-worker/installEvent.ts
+// full credits to them, love love.
 'use strict';
 
 import { build } from "$service-worker";
