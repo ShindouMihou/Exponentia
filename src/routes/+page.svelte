@@ -27,6 +27,7 @@
 
     let lastInput = '';
     let autoSuggestedDetected = false
+    let hideSettings = true
 
     let speech: SpeechSynthesisUtterance;
 
@@ -55,6 +56,7 @@
 
     onMount(async () => {
         alwaysShowHint = localStorage.getItem('always_show_hint') === 'true'
+        hideSettings = localStorage.getItem('hide_settings') === 'true'
         hintShown = alwaysShowHint;
 
         quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
@@ -99,6 +101,11 @@
     function toggleQuickEnd() {
         localStorage.setItem('quick_end', (!quickEnd).toString())
         quickEnd = !quickEnd;
+    }
+
+    function toggleHideSettings() {
+        localStorage.setItem('hide_settings', (!hideSettings).toString())
+        hideSettings = !hideSettings;
     }
 
     function random(): string {
@@ -351,17 +358,25 @@
         </div>
      </div>
      <div class="pt-18 flex flex-col gap-2 text-xs">
-        <a class="font-light uppercase text-black bg-white w-fit p-1 px-[0.27rem] hover:opacity-80 duration-300 ease-in-out"
-            href="https://github.com/ShindouMihou/Exponentia" 
-            alt="Exponentia GitHub"
-        >EXPONENTIA</a>
+        <div class="flex flex-row gap-1 items-center">
+            <a class="font-light uppercase text-black bg-white w-fit p-1 px-[0.27rem] hover:opacity-80 duration-300 ease-in-out"
+                href="https://github.com/ShindouMihou/Exponentia" 
+                alt="Exponentia GitHub"
+            >
+            EXPONENTIA
+            </a>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <p on:click={toggleHideSettings} class="hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] font-light bg-white text-black uppercase">{#if hideSettings} Show Settings {:else} Hide Settings {/if}</span></p>
+        </div>
+        {#if !hideSettings}
         <p class="hidden xl:inline"><span class="p-1 bg-white text-black">TAB + ENTER</span> : next word</p>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p on:click={toggleAlwaysShowHint} class="lg:mt-1 hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] bg-white text-black hidden lg:inline">SHIFT + 1</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
+        <p on:click={toggleAlwaysShowHint} class="lg:mt-1 hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] bg-white text-black hidden lg:inline uppercase">Shift + 1</span><span class="p-1 px-6 bg-white text-black lg:hidden inline uppercase">Click</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p on:click={toggleQuickEnd} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline">SHIFT + 2</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
-         <!-- svelte-ignore a11y-click-events-have-key-events -->
-         <p on:click={toggleAlwaysPlayAudio} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline">SHIFT + 3</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if alwaysPlayAudio} disable {:else} enable {/if} always play audio.</p>
+        <p on:click={toggleQuickEnd} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline uppercase">Shift + 2</span><span class="p-1 px-6 bg-white text-black lg:hidden inline uppercase">Click</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <p on:click={toggleAlwaysPlayAudio} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline uppercase">Shift + 3</span><span class="p-1 px-6 bg-white text-black lg:hidden inline uppercase">Click</span> : {#if alwaysPlayAudio} disable {:else} enable {/if} always play audio.</p>
+        {/if}
         {#if offline}
         <p class="mt-1"><span class="p-1 px-[1.07rem] bg-red-500 text-black">OFFLINE</span> : definitions are disabled, hint is shown.</p>
         {/if}
