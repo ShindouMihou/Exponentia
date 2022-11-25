@@ -13,8 +13,8 @@
     <meta name="og:title" content="Exponentia"/>
     <meta name="og:url" content="exponie.me"/>
     <meta name="og:type" content="website"/>
-    <meta name="description" content="A minimalist's spelling test website. Challenge your vocabulary, works in limited offline."/>
-    <meta name="og:description" content="A minimalist's spelling test website. Challenge your vocabulary, works in limited offline."/>
+    <meta name="description" content="A minimalist's spelling test website. Challenge your vocabulary."/>
+    <meta name="og:description" content="A minimalist's spelling test website. Challenge your vocabulary."/>
     <meta name="og:image" content="/banner.png"/>
     <meta name="image" content="/banner.png"/>
     <meta name="twitter:card" content="summary_large_image">
