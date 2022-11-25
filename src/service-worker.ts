@@ -6,7 +6,7 @@
 import { build } from "$service-worker";
 
 // Update cache names any time any of the cached files change.
-const CACHE_NAME = 'static-cache-v1';
+const CACHE_NAME = 'static-cache-v2';
 
 self.addEventListener('install', (evt) => {
   console.log('[ServiceWorker] Install');
@@ -39,11 +39,6 @@ self.addEventListener('activate', (evt) => {
 self.addEventListener('fetch', (event) => {
   event.respondWith(
      caches.match(event.request).then((cacheResponse) => {
-        if (cacheResponse) {
-           console.info(`Fetching cached: ${event.request.url}`);
-           return cacheResponse;
-        }
-
         console.info(`Fetching fresh: ${event.request.url}`);
         return fetch(event.request)
            .then(async (fetchResponse): Promise<Response | undefined> => {
@@ -65,6 +60,12 @@ self.addEventListener('fetch', (event) => {
               return undefined;
            })
            .catch(((error) => {
+               // Prioritize cache last.
+               if (cacheResponse) {
+                  console.info(`Fetching cached: ${event.request.url}`);
+                  return cacheResponse;
+               }
+
               console.error(`"${error}: ${event.request.url}`);
               return error;
            }));
