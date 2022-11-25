@@ -148,12 +148,18 @@
             word = n;
 
             // Reset the input field to its original state.
-            document.getElementById('input')?.classList.add('text-white');
-            document.getElementById('input')?.classList.remove('text-green-500', 'text-red-500');
+            const inputField = document.getElementById('input')
             disabled = false;
 
-            // Focus on the input field.
-            document.getElementById('input')?.focus();
+            if (inputField) {
+                inputField.classList.add('text-white')
+                inputField.classList.remove('text-green-500', 'text-red-500')
+                //@ts-ignore
+                inputField.value = ''
+                // Focus on the input field.
+                inputField.focus()
+            }
+
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
         } catch (e) {
             throttle = false;
