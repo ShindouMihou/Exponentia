@@ -23,6 +23,9 @@
 
     let alwaysShowHint = false;
     let quickEnd = true;
+
+    let lastInput = '';
+    let autoSuggestedDetected = false
     
     let offlineTimer = setInterval(() => 
        {
@@ -137,6 +140,7 @@
 
             // Reset input.
             input = '';
+            lastInput = '';
             
             // Find a new word and get the definition of it.
             let n = random()
@@ -155,7 +159,7 @@
                 inputField.classList.add('text-white')
                 inputField.classList.remove('text-green-500', 'text-red-500')
                 //@ts-ignore
-                inputField.value = ''
+                inputField.value = '';
                 // Focus on the input field.
                 inputField.focus()
             }
@@ -181,8 +185,21 @@
     }
 
     async function timeAndQuickEnd(event: any) {
+        input = input.trim()
         if (start === -1) {
             start = Date.now();
+        }
+
+        let difference = input.length > lastInput.length ? input.length - lastInput.length : lastInput.length - input.length;
+        if (difference >= 2) {
+            event.preventDefault(); input = lastInput; autoSuggestedDetected = true;
+            return
+        }
+
+        lastInput = input;
+
+        if (autoSuggestedDetected) {
+            autoSuggestedDetected = false;
         }
 
         if ((quickEnd === true && input.toLowerCase() === word)) {
@@ -245,6 +262,9 @@
 <div class="w-full flex flex-col gap-2">
     <div class="w-full m-auto" id="container">
         <div class="flex flex-col gap-2 w-full items-center justify-center m-auto">
+            {#if autoSuggestedDetected}
+            <div class="bg-red-500 font-white p-2 text-xs">Auto-correct, or similar was detected and prevented.</div>
+            {/if}
             <button 
                 class="outline-none flex flex-row gap-2 hover:opacity-70 text-gray-300 text-lg items-center duration-300 ease-in-out p-2" 
                 on:click={hint} 
@@ -261,7 +281,7 @@
             <!-- svelte-ignore a11y-autofocus -->
             <input 
                 id="input"
-                type="text" 
+                type="email"
                 class="outline-none max-w-lg my-6 bg-black text-white duration-300 ease-in-out font-bold placeholder:text-gray-500 w-full text-2xl text-center" 
                 placeholder="word"
                 disabled={disabled}
@@ -269,7 +289,11 @@
                 bind:value={input}
                 on:input={timeAndQuickEnd}
                 on:keydown={enter}
+                on:paste={(event) => event.preventDefault()}
                 spellcheck={false}
+                autocapitalize={'off'}
+                autocomplete={'off'}
+                autocorrect={'off'}
                 enterkeyhint={'done'}
             />
             <button id="reset" 
