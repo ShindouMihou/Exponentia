@@ -175,6 +175,8 @@
             // Reset input.
             input = '';
             lastInput = '';
+
+            hintShown = alwaysShowHint;
             
             // Find a new word and get the definition of it.
             let n = random()
