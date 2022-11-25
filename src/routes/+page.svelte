@@ -55,6 +55,7 @@
     onDestroy(() => { clearInterval(offlineTimer); clearInterval(fasterOfflineTimer); });
 
     onMount(async () => {
+        alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
         alwaysShowHint = localStorage.getItem('always_show_hint') === 'true'
         hideSettings = localStorage.getItem('hide_settings') === 'true'
         hintShown = alwaysShowHint;
@@ -95,6 +96,7 @@
     }
 
     function toggleAlwaysPlayAudio() {
+        localStorage.setItem('always_play_audio', (!alwaysPlayAudio).toString())
         alwaysPlayAudio = !alwaysPlayAudio;
     }
 
