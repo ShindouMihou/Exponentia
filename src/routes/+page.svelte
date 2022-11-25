@@ -29,7 +29,7 @@
     let autoSuggestedDetected = false
 
     let speech: SpeechSynthesisUtterance;
-    
+
     let offlineTimer = setInterval(() => 
        {
            if (navigator.onLine) {
@@ -127,6 +127,8 @@
     }
 
     function audio() {
+        if (window.speechSynthesis.speaking) return
+        
         if (speech) {
             speech.text = word
 
@@ -187,7 +189,8 @@
             }
 
             if (alwaysPlayAudio) {
-                audio()
+                if (window.speechSynthesis.speaking) window.speechSynthesis.cancel()
+                setTimeout(() => audio(), 150)
             }
 
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
