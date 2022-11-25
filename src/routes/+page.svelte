@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
     import { Icon } from '@steeze-ui/svelte-icon'
-    import { Eye, EyeSlash, ArrowPath } from '@steeze-ui/heroicons'
+    import { Eye, EyeSlash, ArrowPath, SpeakerWave } from '@steeze-ui/heroicons'
 
     let dataset: string[] = []
 
@@ -22,10 +22,13 @@
     let offline = false;
 
     let alwaysShowHint = false;
+    let alwaysPlayAudio = false;
     let quickEnd = true;
 
     let lastInput = '';
     let autoSuggestedDetected = false
+
+    let speech: SpeechSynthesisUtterance;
     
     let offlineTimer = setInterval(() => 
        {
@@ -68,6 +71,9 @@
             setOffline()
         }
 
+        speech = new SpeechSynthesisUtterance()
+        speech.lang = 'en'
+
         reset();
     });
 
@@ -83,6 +89,10 @@
         if (!offline) {
             hintShown = alwaysShowHint;
         }
+    }
+
+    function toggleAlwaysPlayAudio() {
+        alwaysPlayAudio = !alwaysPlayAudio;
     }
 
     function toggleQuickEnd() {
@@ -114,6 +124,18 @@
                     throw { error: "No definition found, this exception is intentional." }
                 }
             })
+    }
+
+    function audio() {
+        if (speech) {
+            speech.text = word
+
+            if (definition) {
+                speech.text = speech.text + ". " + definition + " " + word;
+            }
+
+            window.speechSynthesis.speak(speech)
+        }
     }
 
     function hide(word: string): string {
@@ -162,6 +184,10 @@
                 inputField.value = '';
                 // Focus on the input field.
                 inputField.focus()
+            }
+
+            if (alwaysPlayAudio) {
+                audio()
             }
 
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
@@ -238,6 +264,11 @@
             event.preventDefault();
             toggleQuickEnd();
         }
+        
+        if (event.key === '#') {
+            event.preventDefault();
+            toggleAlwaysPlayAudio();
+        }
     } 
 
     async function handleResetKeyDown(event: any) {
@@ -296,12 +327,20 @@
                 autocorrect={'off'}
                 enterkeyhint={'done'}
             />
-            <button id="reset" 
+            <div class="flex flex-row gap-4">
+                <button id="reset" 
+                    on:keydown={handleResetKeyDown} 
+                    class="focus:bg-white focus:text-black duration-300 ease-in-out p-2 outline-none flex flex-row gap-2 hover:opacity-70 text-gray-300 text-lg items-center" 
+                    on:click={reset}>
+                    <Icon src={ArrowPath} size="18"></Icon>
+                </button>
+                <button id="speak" 
                 on:keydown={handleResetKeyDown} 
                 class="focus:bg-white focus:text-black duration-300 ease-in-out p-2 outline-none flex flex-row gap-2 hover:opacity-70 text-gray-300 text-lg items-center" 
-                on:click={reset}>
-                <Icon src={ArrowPath} size="18"></Icon>
-            </button>
+                on:click={audio}>
+                    <Icon src={SpeakerWave} size="18"></Icon>
+                </button>
+            </div>
             {#if end !== -1}
             <p class="font-light text-sm max-w-xl pt-4">{(end - start) / 1000} seconds</p>
             {/if}
@@ -317,6 +356,8 @@
         <p on:click={toggleAlwaysShowHint} class="lg:mt-1 hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] bg-white text-black hidden lg:inline">SHIFT + 1</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <p on:click={toggleQuickEnd} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline">SHIFT + 2</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
+         <!-- svelte-ignore a11y-click-events-have-key-events -->
+         <p on:click={toggleAlwaysPlayAudio} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline">SHIFT + 3</span><span class="p-1 px-6 bg-white text-black lg:hidden inline">CLICK</span> : {#if alwaysPlayAudio} disable {:else} enable {/if} always play audio.</p>
         {#if offline}
         <p class="mt-1"><span class="p-1 px-[1.07rem] bg-red-500 text-black">OFFLINE</span> : definitions are disabled, hint is shown.</p>
         {/if}
