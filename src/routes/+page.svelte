@@ -62,6 +62,12 @@
     onDestroy(() => { clearInterval(offlineTimer); clearInterval(fasterOfflineTimer); });
 
     onMount(async () => {
+        if (window.umami == null) {
+            window.umami = {
+                trackEvent: (event: string, data: any = {}) => {  },
+                trackView: (url: string, referrer: string = '') => {  },
+            }
+        }
         alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
         isTracking = ( localStorage.getItem('is_tracking') ?? 'true') === 'true'
         alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'

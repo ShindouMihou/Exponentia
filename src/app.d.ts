@@ -13,7 +13,7 @@ declare interface Window {
 }
 
 declare interface Umami {
-	trackEvent(event: string): voi
+	trackEvent(event: string): void
 	trackEvent(event: string, data: any = {}): void
 	trackView(url: string): void
 	trackView(url: string, referrer: string): void
