@@ -239,21 +239,24 @@
         }
     }
 
-    async function enter(event: any) {
+    async function enter(event: KeyboardEvent) {
         if (event.key === 'Enter' && input.length !== 0) {
-            event.preventDefault();
-            complete();
+            event.preventDefault(); complete();
+        }
+
+        if (event.ctrlKey && (event.key === 'a' || event.key === 'A')) {
+            event.preventDefault(); input = ''; lastInput = '';
         }
     }
 
-    async function timeAndQuickEnd(event: any) {
+    async function timeAndQuickEnd(event: Event) {
         input = input.trim()
         if (start === -1) {
             start = Date.now();
         }
 
         let difference = input.length > lastInput.length ? input.length - lastInput.length : lastInput.length - input.length;
-        if (difference >= 2) {
+        if (difference >= 2 && input != '') {
             event.preventDefault(); input = lastInput; autoSuggestedDetected = true;
             return
         }
@@ -285,7 +288,7 @@
         document.getElementById('input')?.classList.replace('text-white','text-red-500');
     }
 
-    function handleGlobalKeyDown(event: any) {
+    function handleGlobalKeyDown(event: KeyboardEvent) {
         if (event.key === 'Tab') {
             event.preventDefault();
             document.getElementById('reset')?.focus();
