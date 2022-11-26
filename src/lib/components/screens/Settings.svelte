@@ -14,7 +14,7 @@
 <div class="flex flex-col" in:fade>
     <div class="flex flex-row gap-2 items-center justify-between">
         <h1 class="text-2xl font-light text-pink-300 w-fit uppercase">Settings</h1>
-        <button on:click={() => dispatch('settings')} class="text-black bg-red-300 rounded-full hover:bg-white duration-300 ease-in-out">
+        <button on:click={() => dispatch('hide')} class="text-black bg-red-300 rounded-full hover:bg-white duration-300 ease-in-out">
             <Icon src={ChevronDown} size={'20'}></Icon>
         </button>
     </div>

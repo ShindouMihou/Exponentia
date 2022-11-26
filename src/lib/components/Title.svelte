@@ -1,6 +1,8 @@
-<a class="font-light uppercase text-black bg-white w-fit p-1 px-[0.27rem] hover:opacity-80 duration-300 ease-in-out text-xs"
-    href="https://github.com/ShindouMihou/Exponentia" 
-    alt="Exponentia GitHub"
-    rel="noreferrer"
-    target="_blank"
->EXPONENTIA</a>
+<script lang="ts">
+	import { createEventDispatcher } from "svelte";
+
+    const dispatch = createEventDispatcher()
+</script>
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<p on:click={() => dispatch('show')}
+    class="font-light uppercase text-black bg-white w-fit p-1 px-[0.27rem] hover:opacity-80 duration-300 ease-in-out text-xs">EXPONENTIA</p>

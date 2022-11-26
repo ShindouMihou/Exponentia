@@ -1,18 +1,17 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
-    import { Icon } from '@steeze-ui/svelte-icon'
     import { ArrowPath, SpeakerWave, ChevronDown } from '@steeze-ui/heroicons'
     import terminal from '$lib/logging'
     import { reduce, hide, diff } from '$lib/word'
-	import ToggleableSetting from "$lib/components/settings/ToggleableSetting.svelte";
 	import { fade } from "svelte/transition";
-	import Hint from "$lib/components/Hint.svelte";
+    import Hint from "$lib/components/Hint.svelte";
 	import IconButton from "$lib/components/shared/IconButton.svelte";
 	import Title from "$lib/components/Title.svelte";
 	import ShowSettings from "$lib/components/ShowSettings.svelte";
 	import Loading from "$lib/components/screens/Loading.svelte";
 	import Settings from "$lib/components/screens/Settings.svelte";
 	import InputField from "$lib/components/InputField.svelte";
+	import Info from "$lib/components/screens/Info.svelte";
 
     let dataset: string[] = []
 
@@ -38,7 +37,10 @@
 
     let lastInput = '';
     let autoSuggestedDetected = false
-    let hideSettings = true
+
+    let isTracking = false
+
+    let screen = 'PLAY';
 
     let speech: SpeechSynthesisUtterance;
 
@@ -61,6 +63,7 @@
 
     onMount(async () => {
         alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
+        isTracking = ( localStorage.getItem('is_tracking') ?? 'true') === 'true'
         alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'
         hintShown = alwaysShowHint;
 
@@ -74,6 +77,8 @@
                 .then((response) => response.json())
                 .then((data) => {
                     const current = localStorage.getItem('version')
+
+                    window.umami.trackEvent('Version Re-check', { current: current, server: data.version});
                     if (current == null) {
                         localStorage.setItem('version', data.version)
                         return
@@ -89,6 +94,7 @@
         terminal.info({ name: 'Exponentia', version: localStorage.getItem('version'), scm: 'https://github.com/ShindouMihou/Exponentia'})
         if (localStorage.getItem('dataset') == null) {
             terminal.network('words.txt')
+            window.umami.trackEvent('Dataset Collect');
             await fetch('/dataset/words.txt')
                 .then((response) => response.text())
                 .then((text) => localStorage.setItem('dataset', text));
@@ -119,23 +125,36 @@
 
     function toggleAlwaysShowHint() {
         alwaysShowHint = !alwaysShowHint;
-        toggle('always_show_hint', alwaysShowHint)
+        toggle('always_show_hint', alwaysShowHint);
 
         if (!offline) {
             hintShown = alwaysShowHint;
         }
+
+        window.umami.trackEvent('Toggle Always Show Hint', { value: alwaysShowHint });
     }
 
     function toggleAlwaysPlayAudio() {
-        alwaysPlayAudio = !alwaysPlayAudio; toggle('always_play_audio', alwaysPlayAudio);
+        alwaysPlayAudio = !alwaysPlayAudio; 
+        toggle('always_play_audio', alwaysPlayAudio);
+
+        window.umami.trackEvent('Toggle Always Play Audio', { value: alwaysPlayAudio });
     }
 
     function toggleQuickEnd() {
-        quickEnd = !quickEnd; toggle('quick_end', quickEnd);
+        quickEnd = !quickEnd; 
+        toggle('quick_end', quickEnd);
+
+        window.umami.trackEvent('Toggle Quick End', { value: quickEnd });
+    }
+
+    function navigate(to: 'PLAY' | 'SETTINGS' | 'INFO') {
+        screen = to;
+        window.umami.trackEvent('Navigate', { screen: to });
     }
 
     function toggleSettings() {
-        hideSettings = !hideSettings;
+        if (screen === 'SETTINGS') navigate('PLAY'); else navigate('SETTINGS');
     }
 
     function random(): string {
@@ -166,7 +185,9 @@
                 speech.text = speech.text + '. ' + definition + ' ' + word;
             }
 
-            window.speechSynthesis.speak(speech); terminal.event({ ev: 'pl_au', text: speech.text })
+            window.speechSynthesis.speak(speech); 
+            terminal.event({ ev: 'pl_au', text: speech.text });
+            window.umami.trackEvent('Text-To-Speech', { text: word });
         }
     }
 
@@ -213,6 +234,7 @@
 
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
             terminal.event({ ev: 'res', word: word, def: definition })
+            window.umami.trackEvent('New Word', { new: word });
         } catch (e) {
             throttle = false;
             await reset()
@@ -230,11 +252,15 @@
     function cheated() {
         input = lastInput; 
         autoSuggestedDetected = true;
+
+        window.umami.trackEvent('Anti-Cheat Triggered')
     }
 
     function erase() {
         input = ''; 
         lastInput = '';
+
+        window.umami.trackEvent('Quick Erase')
     }
 
     function hideAutoSuggestionWarning() {
@@ -249,18 +275,24 @@
 
         if (input === word) {
             document.getElementById('input')?.classList.replace('text-white', 'text-green-500');
+
             terminal.event({ ev: 'compl', s: true })
+            window.umami.trackEvent('Spelled Correctly', { word: word, input: input })
             return;
         }
 
         document.getElementById('input')?.classList.replace('text-white','text-red-500');
+
         terminal.event({ ev: 'compl', s: false })
+        window.umami.trackEvent('Spelled Incorrectly', { word: word, input: input })
     }
 
     function handleGlobalKeyDown(event: KeyboardEvent) {
         if (event.key === 'Tab') {
             event.preventDefault();
             document.getElementById('reset')?.focus();
+
+            window.umami.trackEvent('Short Reset Focus')
         }
 
         if (event.key === '!') {
@@ -295,7 +327,7 @@
 <Loading/>
 {:else}
 <div class="w-full flex flex-col gap-2">
-    {#if hideSettings}
+    {#if screen === 'PLAY'}
     <div class="w-full m-auto" id="container" in:fade>
         <div class="flex flex-col gap-2 w-full items-center justify-center m-auto">
             {#if autoSuggestedDetected}
@@ -328,20 +360,22 @@
      </div>
      <div class="pt-18 flex flex-col gap-2 text-xs">
         <div class="flex flex-row gap-1 items-center">
-            <Title/>
+            <Title on:show={() => navigate('INFO')}/>
             <ShowSettings on:click={toggleSettings}/>
             {#if offline}<p class="bg-red p-1 text-black text-xs font-light bg-red-500 hover:opacity-80 duration-300 ease-in-out" transition:fade>OFFLINE</p>{/if}
         </div>
     </div>
-    {:else}
-    <Settings 
-        alwaysPlayAudio={alwaysPlayAudio} 
-        alwaysShowHint={alwaysShowHint} 
-        quickEnd={quickEnd}
-        on:audio={toggleAlwaysPlayAudio}
-        on:hint={toggleAlwaysShowHint}
-        on:quickend={toggleQuickEnd}
-        on:settings={toggleSettings}/>
+    {:else if screen === 'SETTINGS'}
+        <Settings 
+            alwaysPlayAudio={alwaysPlayAudio} 
+            alwaysShowHint={alwaysShowHint} 
+            quickEnd={quickEnd}
+            on:audio={toggleAlwaysPlayAudio}
+            on:hint={toggleAlwaysShowHint}
+            on:quickend={toggleQuickEnd}
+            on:hide={toggleSettings}/>
+    {:else if screen === 'INFO'}
+        <Info on:hide={() => navigate('PLAY')}/>
     {/if}
 </div>
 {/if}

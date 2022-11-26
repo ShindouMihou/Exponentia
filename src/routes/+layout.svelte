@@ -1,5 +1,8 @@
 <script>
-  import "../app.css";
+	import { onMount } from "svelte";
+    import "../app.css";
+
+    const UMAMI_ID = import.meta.env.VITE_UMAMI_WEBSITE_ID;
 </script>
 <svelte:head>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,6 +27,7 @@
         .inter { font-family: 'Inter', 'sans-serif'; }
         body { background-color: #000; }
     </style>
+    <script async defer src="https://analytics.umami.is/script.js" data-website-id="{UMAMI_ID}"></script>
 </svelte:head>
 
 <div class="p-6 inter flex text-white flex-col min-h-screen">
