@@ -23,7 +23,7 @@
     let throttle = false;
     let offline = false;
 
-    let alwaysShowHint = false;
+    let alwaysShowHint = true;
     let alwaysPlayAudio = false;
     let quickEnd = true;
 
@@ -52,7 +52,7 @@
 
     onMount(async () => {
         alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
-        alwaysShowHint = localStorage.getItem('always_show_hint') === 'true'
+        alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'
         hideSettings = localStorage.getItem('hide_settings') === 'true'
         hintShown = alwaysShowHint;
 
