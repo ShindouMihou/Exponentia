@@ -337,9 +337,9 @@
 
 {#if word === ''}
     {#if mountErrors.length === 0}
-    <Loading/>
+        <Loading/>
     {:else}
-    <MountError errors={mountErrors}>
+        <MountError errors={mountErrors}/>
     {/if}
 {:else}
 <div class="w-full flex flex-col gap-2">
