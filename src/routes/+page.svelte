@@ -12,6 +12,7 @@
 	import Settings from "$lib/components/screens/Settings.svelte";
 	import InputField from "$lib/components/InputField.svelte";
 	import Info from "$lib/components/screens/Info.svelte";
+	import MountError from "$lib/components/screens/MountError.svelte";
 
     let dataset: string[] = []
 
@@ -43,6 +44,7 @@
     let screen = 'PLAY';
 
     let speech: SpeechSynthesisUtterance;
+    let mountErrors: string[] = []
 
     let offlineTimer = setInterval(() => 
        {
@@ -62,61 +64,65 @@
     onDestroy(() => { clearInterval(offlineTimer); clearInterval(fasterOfflineTimer); });
 
     onMount(async () => {
-        if (window.umami == null) {
-            window.umami = {
-                trackEvent: (event: string, data: any = {}) => {  },
-                trackView: (url: string, referrer: string = '') => {  },
+        try {
+            if (window.umami == null) {
+                window.umami = {
+                    trackEvent: (event: string, data: any = {}) => {  },
+                    trackView: (url: string, referrer: string = '') => {  },
+                }
             }
+            alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
+            isTracking = ( localStorage.getItem('is_tracking') ?? 'true') === 'true'
+            alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'
+            hintShown = alwaysShowHint;
+
+            quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
+            if (localStorage.getItem('version') == null) {
+                if (localStorage.getItem('dataset') != null) { localStorage.removeItem('dataset') }
+            }
+
+            terminal.network('version.json')
+            await fetch('/dataset/version.json')
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const current = localStorage.getItem('version')
+
+                        window.umami.trackEvent('Version Re-check', { current: current, server: data.version});
+                        if (current == null) {
+                            localStorage.setItem('version', data.version)
+                            return
+                        }
+
+                        const currentVersion =  Number.parseFloat(current)
+                        if (data.version > currentVersion) {
+                            terminal.event({ ev: 'new_ver', from: currentVersion, to: data.version })
+                            localStorage.setItem('version', data.version); localStorage.removeItem('dataset');
+                        }
+                    })
+
+            terminal.info({ name: 'Exponentia', version: localStorage.getItem('version'), scm: 'https://github.com/ShindouMihou/Exponentia'})
+            if (localStorage.getItem('dataset') == null) {
+                terminal.network('words.txt')
+                window.umami.trackEvent('Dataset Collect');
+                await fetch('/dataset/words.txt')
+                    .then((response) => response.text())
+                    .then((text) => localStorage.setItem('dataset', text));
+            }
+
+            dataset = localStorage.getItem('dataset')!!.split('\n');
+
+            if (!navigator.onLine) {
+                setOffline()
+            }
+
+            speech = new SpeechSynthesisUtterance()
+            speech.lang = 'en'
+            speech.rate = 1.05
+
+            reset();
+        } catch (ex) {
+            mountErrors = [...mountErrors, JSON.stringify(ex)]
         }
-        alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
-        isTracking = ( localStorage.getItem('is_tracking') ?? 'true') === 'true'
-        alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'
-        hintShown = alwaysShowHint;
-
-        quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
-        if (localStorage.getItem('version') == null) {
-            if (localStorage.getItem('dataset') != null) { localStorage.removeItem('dataset') }
-        }
-
-        terminal.network('version.json')
-        await fetch('/dataset/version.json')
-                .then((response) => response.json())
-                .then((data) => {
-                    const current = localStorage.getItem('version')
-
-                    window.umami.trackEvent('Version Re-check', { current: current, server: data.version});
-                    if (current == null) {
-                        localStorage.setItem('version', data.version)
-                        return
-                    }
-
-                    const currentVersion =  Number.parseFloat(current)
-                    if (data.version > currentVersion) {
-                        terminal.event({ ev: 'new_ver', from: currentVersion, to: data.version })
-                        localStorage.setItem('version', data.version); localStorage.removeItem('dataset');
-                    }
-                })
-
-        terminal.info({ name: 'Exponentia', version: localStorage.getItem('version'), scm: 'https://github.com/ShindouMihou/Exponentia'})
-        if (localStorage.getItem('dataset') == null) {
-            terminal.network('words.txt')
-            window.umami.trackEvent('Dataset Collect');
-            await fetch('/dataset/words.txt')
-                .then((response) => response.text())
-                .then((text) => localStorage.setItem('dataset', text));
-        }
-
-        dataset = localStorage.getItem('dataset')!!.split('\n');
-
-        if (!navigator.onLine) {
-            setOffline()
-        }
-
-        speech = new SpeechSynthesisUtterance()
-        speech.lang = 'en'
-        speech.rate = 1.05
-
-        reset();
     });
 
     function setOffline() {
@@ -330,7 +336,11 @@
 <svelte:window on:keydown={handleGlobalKeyDown}/>
 
 {#if word === ''}
-<Loading/>
+    {#if mountErrors.length === 0}
+    <Loading/>
+    {:else}
+    <MountError errors={mountErrors}>
+    {/if}
 {:else}
 <div class="w-full flex flex-col gap-2">
     {#if screen === 'PLAY'}
