@@ -3,6 +3,7 @@
     import { Icon } from '@steeze-ui/svelte-icon'
     import { Eye, EyeSlash, ArrowPath, SpeakerWave } from '@steeze-ui/heroicons'
     import terminal from '$lib/logging'
+    import { reduce, hide } from '$lib/word'
 
     let dataset: string[] = []
 
@@ -109,46 +110,34 @@
         hintShown = true;
     }
 
+    function toggle(key: string, value: boolean) {
+        localStorage.setItem(key, (value).toString())
+        terminal.event({ ev: 'tog', opt: key  })
+    }
+
     function toggleAlwaysShowHint() {
-        localStorage.setItem('always_show_hint', (!alwaysShowHint).toString())
         alwaysShowHint = !alwaysShowHint;
+        toggle('always_show_hint', alwaysShowHint)
 
         if (!offline) {
             hintShown = alwaysShowHint;
         }
-
-        terminal.event({ ev: 'tog', opt: 'a_hint' })
     }
 
     function toggleAlwaysPlayAudio() {
-        localStorage.setItem('always_play_audio', (!alwaysPlayAudio).toString())
-        alwaysPlayAudio = !alwaysPlayAudio;
-        terminal.event({ ev: 'tog', opt: 'a_aud' })
+        alwaysPlayAudio = !alwaysPlayAudio; toggle('always_play_audio', alwaysPlayAudio);
     }
 
     function toggleQuickEnd() {
-        localStorage.setItem('quick_end', (!quickEnd).toString())
-        quickEnd = !quickEnd;
-        terminal.event({ ev: 'tog', opt: 'q_end' })
+        quickEnd = !quickEnd; toggle('quick_end', quickEnd);
     }
 
     function toggleHideSettings() {
-        localStorage.setItem('hide_settings', (!hideSettings).toString())
-        hideSettings = !hideSettings;
-        terminal.event({ ev: 'tog', opt: 'opts' })
+        hideSettings = !hideSettings; toggle('hide_settings', hideSettings);
     }
 
     function random(): string {
         return dataset[Math.floor(Math.random() * dataset.length)].toLowerCase();
-    }
-
-    function reduce(content: string): string {
-        let newContents = '';
-        for (let i = 0; i < content.length; i++) {
-            if (i % (Math.floor(Math.random() * 2)) == 0) { newContents += content.charAt(i); } else { newContents += '•'; }
-        }
-
-        return newContents
     }
 
     function define(word: string) {
@@ -177,15 +166,6 @@
 
             window.speechSynthesis.speak(speech); terminal.event({ ev: 'pl_au', text: speech.text })
         }
-    }
-
-    function hide(word: string): string {
-        let result = '';
-        for (let i = 0; i < word.length; i++) {
-            result += '•';
-        }
-
-        return result;
     }
 
     async function reset() {
