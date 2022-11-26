@@ -25,10 +25,10 @@
             <p>
                 exponentia uses umami.is and cloudflare analytics to provide some form of analytics; we use umami.is to provide 
                 us with anonymized information such as what words are the most difficult to the majority, what words are the easiest and how many 
-                have attempted to use some form of corrections or suggestions.
+                have attempted to use some form of corrections or suggestions, etc.
             </p>
             <p class="my-2">
-                other than those indicated, no other data is collected. all of these are verifiable from the official source code, deployments are 
+                other than those, no personal data is collected. all of these are verifiable from the official source code, deployments are 
                 automated to ensure that what is in our official source code is what you are seeing as well (no hidden tricks).
             </p>
         </div>
