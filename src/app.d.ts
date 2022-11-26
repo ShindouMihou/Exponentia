@@ -7,3 +7,14 @@ declare namespace App {
 	// interface Error {}
 	// interface Platform {}
 }
+
+declare interface Window {
+	umami: Umami
+}
+
+declare interface Umami {
+	trackEvent(event: string): voi
+	trackEvent(event: string, data: any = {}): void
+	trackView(url: string): void
+	trackView(url: string, referrer: string): void
+}
