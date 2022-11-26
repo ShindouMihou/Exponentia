@@ -44,6 +44,7 @@
             name="Always Play Audio"
             description="plays the audio hint upon the start of the test."
             option={alwaysPlayAudio}
-            keyCombination={'SHIFT + 3'}/>
+            keyCombination={'SHIFT + 3'}
+            supported={window.speechSynthesis != null}/>
     </div>
 </div>
