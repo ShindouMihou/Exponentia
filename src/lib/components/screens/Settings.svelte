@@ -10,7 +10,14 @@
     export let alwaysShowHint: boolean;
     export let quickEnd: boolean;
     export let alwaysPlayAudio: boolean;
+
+    function escape(event: KeyboardEvent) {
+        if (event.key === 'Escape') {
+            dispatch('hide')
+        }
+    }
 </script>
+<svelte:window on:keydown={escape}/>
 <div class="flex flex-col" in:fade>
     <div class="flex flex-row gap-2 items-center justify-between">
         <h1 class="text-2xl font-light text-pink-300 w-fit uppercase">Settings</h1>
