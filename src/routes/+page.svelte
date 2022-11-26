@@ -1,9 +1,17 @@
 <script lang="ts">
 	import { onDestroy, onMount } from "svelte";
     import { Icon } from '@steeze-ui/svelte-icon'
-    import { Eye, EyeSlash, ArrowPath, SpeakerWave } from '@steeze-ui/heroicons'
+    import { ArrowPath, SpeakerWave, ChevronDown } from '@steeze-ui/heroicons'
     import terminal from '$lib/logging'
     import { reduce, hide, diff } from '$lib/word'
+	import ToggleableSetting from "$lib/components/settings/ToggleableSetting.svelte";
+	import { fade } from "svelte/transition";
+	import Hint from "$lib/components/Hint.svelte";
+	import IconButton from "$lib/components/shared/IconButton.svelte";
+	import Title from "$lib/components/Title.svelte";
+	import ShowSettings from "$lib/components/ShowSettings.svelte";
+	import Loading from "$lib/components/screens/Loading.svelte";
+	import Settings from "$lib/components/screens/Settings.svelte";
 
     let dataset: string[] = []
 
@@ -53,7 +61,6 @@
     onMount(async () => {
         alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
         alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'
-        hideSettings = localStorage.getItem('hide_settings') === 'true'
         hintShown = alwaysShowHint;
 
         quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
@@ -126,8 +133,8 @@
         quickEnd = !quickEnd; toggle('quick_end', quickEnd);
     }
 
-    function toggleHideSettings() {
-        hideSettings = !hideSettings; toggle('hide_settings', hideSettings);
+    function toggleSettings() {
+        hideSettings = !hideSettings;
     }
 
     function random(): string {
@@ -301,28 +308,16 @@
 <svelte:window on:keydown={handleGlobalKeyDown}/>
 
 {#if word === ''}
-<div class="w-full m-auto">
-   <div class="flex w-full items-center justify-center m-auto">
-        <p class="font-light text-2xl uppercase text-black bg-white p-1 animate-pulse animate-bounce">EXPONENTIA</p>
-   </div>
-</div>
+<Loading/>
 {:else}
 <div class="w-full flex flex-col gap-2">
-    <div class="w-full m-auto" id="container">
+    {#if hideSettings}
+    <div class="w-full m-auto" id="container" in:fade>
         <div class="flex flex-col gap-2 w-full items-center justify-center m-auto">
             {#if autoSuggestedDetected}
-            <div class="bg-red-500 font-white p-2 text-xs">Auto-correct, or similar was detected and prevented.</div>
+            <div class="bg-red-500 font-white p-2 text-xs" in:fade out:fade>Auto-correct, or similar was detected and prevented.</div>
             {/if}
-            <button 
-                class="outline-none flex flex-row gap-2 hover:opacity-70 text-gray-300 text-lg items-center duration-300 ease-in-out p-2" 
-                on:click={hint} 
-                id="hint"
-            >
-                <p class="text-white">
-                    {#if hintShown} {reduced} {:else} {hidden} {/if}
-                </p>
-                {#if hintShown} <Icon src={EyeSlash} size="18"></Icon> {:else} <Icon src={Eye} size="18"></Icon> {/if}
-            </button>
+            <Hint on:click={hint} hidden={hidden} reduced={reduced} hintShown={hintShown}/>
             {#if !offline}
             <p class="font-light text-sm lowercase text-center max-w-xl">{definition}</p>
             {/if}
@@ -345,18 +340,8 @@
                 enterkeyhint={'done'}
             />
             <div class="flex flex-row gap-4">
-                <button id="reset" 
-                    on:keydown={handleResetKeyDown} 
-                    class="focus:bg-white focus:text-black duration-300 ease-in-out p-2 outline-none flex flex-row gap-2 hover:opacity-70 text-gray-300 text-lg items-center" 
-                    on:click={reset}>
-                    <Icon src={ArrowPath} size="18"></Icon>
-                </button>
-                <button id="speak" 
-                on:keydown={handleResetKeyDown} 
-                class="focus:bg-white focus:text-black duration-300 ease-in-out p-2 outline-none flex flex-row gap-2 hover:opacity-70 text-gray-300 text-lg items-center" 
-                on:click={audio}>
-                    <Icon src={SpeakerWave} size="18"></Icon>
-                </button>
+                <IconButton id="reset" icon={ArrowPath} on:click={reset} on:keydown={handleResetKeyDown}/>
+                <IconButton id="speak" icon={SpeakerWave} on:click={audio}/>
             </div>
             {#if end !== -1}
             <p class="font-light text-sm max-w-xl pt-4">{(end - start) / 1000} seconds</p>
@@ -365,29 +350,20 @@
      </div>
      <div class="pt-18 flex flex-col gap-2 text-xs">
         <div class="flex flex-row gap-1 items-center">
-            <a class="font-light uppercase text-black bg-white w-fit p-1 px-[0.27rem] hover:opacity-80 duration-300 ease-in-out"
-                href="https://github.com/ShindouMihou/Exponentia" 
-                alt="Exponentia GitHub"
-                rel="noreferrer"
-                target="_blank"
-            >
-            EXPONENTIA
-            </a>
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <p on:click={toggleHideSettings} class="hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] font-light bg-white text-black uppercase">{#if hideSettings} Show Settings {:else} Hide Settings {/if}</span></p>
+            <Title/>
+            <ShowSettings on:click={toggleSettings}/>
+            {#if offline}<p class="bg-red p-1 text-black text-xs font-light bg-red-500 hover:opacity-80 duration-300 ease-in-out" transition:fade>OFFLINE</p>{/if}
         </div>
-        {#if !hideSettings}
-        <p class="hidden xl:inline"><span class="p-1 bg-white text-black">TAB + ENTER</span> : next word</p>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p on:click={toggleAlwaysShowHint} class="lg:mt-1 hover:opacity-80 duration-300 ease-in-out"><span class="p-1 px-[0.93rem] bg-white text-black hidden lg:inline uppercase">Shift + 1</span><span class="p-1 px-6 bg-white text-black lg:hidden inline uppercase">Click</span> : {#if alwaysShowHint} disable {:else} enable {/if} always show hint.</p>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p on:click={toggleQuickEnd} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline uppercase">Shift + 2</span><span class="p-1 px-6 bg-white text-black lg:hidden inline uppercase">Click</span> : {#if quickEnd} disable {:else} enable {/if} quick end.</p>
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <p on:click={toggleAlwaysPlayAudio} class="mt-1 hover:opacity-80 duration-300 ease-in-out" ><span class="p-1 px-[0.87rem] bg-white text-black hidden lg:inline uppercase">Shift + 3</span><span class="p-1 px-6 bg-white text-black lg:hidden inline uppercase">Click</span> : {#if alwaysPlayAudio} disable {:else} enable {/if} always play audio.</p>
-        {/if}
-        {#if offline}
-        <p class="mt-1"><span class="p-1 px-[1.07rem] bg-red-500 text-black">OFFLINE</span> : definitions are disabled, hint is shown.</p>
-        {/if}
     </div>
+    {:else}
+    <Settings 
+        alwaysPlayAudio={alwaysPlayAudio} 
+        alwaysShowHint={alwaysShowHint} 
+        quickEnd={quickEnd}
+        on:audio={toggleAlwaysPlayAudio}
+        on:hint={toggleAlwaysShowHint}
+        on:quickend={toggleQuickEnd}
+        on:settings={toggleSettings}/>
+    {/if}
 </div>
 {/if}
