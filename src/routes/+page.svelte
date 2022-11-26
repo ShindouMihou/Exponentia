@@ -123,6 +123,11 @@
 
             reset();
         } catch (ex) {
+            if ((ex as string).includes('speechsynthesisutterance')) {
+                mountErrors = ['Your current browser is unsupported due to not supporting text-to-speech.'
+                 + 'If this happens in an in-app browser such as Facebooka\'s, please open the site in your browser such as Firefox or Google Chrome.']
+                return
+            }
             mountErrors = [...mountErrors, (ex as string)]
         }
     });
