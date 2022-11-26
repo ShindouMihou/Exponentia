@@ -2,6 +2,7 @@
 	import { onDestroy, onMount } from "svelte";
     import { Icon } from '@steeze-ui/svelte-icon'
     import { Eye, EyeSlash, ArrowPath, SpeakerWave } from '@steeze-ui/heroicons'
+    import terminal from '$lib/logging'
 
     let dataset: string[] = []
 
@@ -65,6 +66,7 @@
             if (localStorage.getItem('dataset') != null) { localStorage.removeItem('dataset') }
         }
 
+        terminal.network('version.json')
         await fetch('/dataset/version.json')
                 .then((response) => response.json())
                 .then((data) => {
@@ -76,14 +78,14 @@
 
                     const currentVersion =  Number.parseFloat(current)
                     if (data.version > currentVersion) {
-                        console.log('A new version has been detected, emptying cache.')
+                        terminal.event({ ev: 'new_ver', from: currentVersion, to: data.version })
                         localStorage.setItem('version', data.version); localStorage.removeItem('dataset');
                     }
                 })
 
-        console.log('Exponentia v' + localStorage.getItem('version'))
-
+        terminal.info({ name: 'Exponentia', version: localStorage.getItem('version'), scm: 'https://github.com/ShindouMihou/Exponentia'})
         if (localStorage.getItem('dataset') == null) {
+            terminal.network('words.txt')
             await fetch('/dataset/words.txt')
                 .then((response) => response.text())
                 .then((text) => localStorage.setItem('dataset', text));
@@ -114,21 +116,26 @@
         if (!offline) {
             hintShown = alwaysShowHint;
         }
+
+        terminal.event({ ev: 'tog', opt: 'a_hint' })
     }
 
     function toggleAlwaysPlayAudio() {
         localStorage.setItem('always_play_audio', (!alwaysPlayAudio).toString())
         alwaysPlayAudio = !alwaysPlayAudio;
+        terminal.event({ ev: 'tog', opt: 'a_aud' })
     }
 
     function toggleQuickEnd() {
         localStorage.setItem('quick_end', (!quickEnd).toString())
         quickEnd = !quickEnd;
+        terminal.event({ ev: 'tog', opt: 'q_end' })
     }
 
     function toggleHideSettings() {
         localStorage.setItem('hide_settings', (!hideSettings).toString())
         hideSettings = !hideSettings;
+        terminal.event({ ev: 'tog', opt: 'opts' })
     }
 
     function random(): string {
@@ -145,6 +152,7 @@
     }
 
     function define(word: string) {
+        terminal.network(word)
         return fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + word)
             .then((response) => response.ok === true ? response.json() : null)
             .then((data: Array<any>) => {
@@ -167,7 +175,7 @@
                 speech.text = speech.text + ". " + definition + " " + word;
             }
 
-            window.speechSynthesis.speak(speech)
+            window.speechSynthesis.speak(speech); terminal.event({ ev: 'pl_au', text: speech.text })
         }
     }
 
@@ -182,6 +190,7 @@
 
     async function reset() {
         if (throttle) {
+            terminal.event('throttled()')
             return;
         }
 
@@ -227,6 +236,7 @@
             }
 
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
+            terminal.event({ ev: 'res', word: word, def: definition })
         } catch (e) {
             throttle = false;
             await reset()
@@ -237,27 +247,29 @@
         if (!offline) {
             hintShown = !hintShown;
         }
+
+        terminal.event({ ev: 'tog', opt: 'hint' })
     }
 
     async function enter(event: KeyboardEvent) {
         if (event.key === 'Enter' && input.length !== 0) {
-            event.preventDefault(); complete();
+            event.preventDefault(); complete(); terminal.event({ ev: 'compl', input: input });
         }
 
         if (event.ctrlKey && (event.key === 'a' || event.key === 'A')) {
-            event.preventDefault(); input = ''; lastInput = '';
+            event.preventDefault(); input = ''; lastInput = ''; terminal.event({ ev: 'q_er' });
         }
     }
 
     async function timeAndQuickEnd(event: Event) {
         input = input.trim()
         if (start === -1) {
-            start = Date.now();
+            start = Date.now(); terminal.event({ ev: 'tme', s: start });
         }
 
         let difference = input.length > lastInput.length ? input.length - lastInput.length : lastInput.length - input.length;
         if (difference >= 2 && input != '') {
-            event.preventDefault(); input = lastInput; autoSuggestedDetected = true;
+            event.preventDefault(); input = lastInput; autoSuggestedDetected = true; terminal.event({ ev: 'ac', diff: difference });
             return
         }
 
@@ -268,8 +280,7 @@
         }
 
         if ((quickEnd === true && input.toLowerCase() === word)) {
-            event.preventDefault();
-            complete();
+            event.preventDefault(); complete(); terminal.event({ ev: 'qe', word: word})
         }
     }
 
@@ -282,10 +293,12 @@
 
         if (input.toLowerCase() === word) {
             document.getElementById('input')?.classList.replace('text-white', 'text-green-500');
+            terminal.event({ ev: 'compl', s: true })
             return;
         }
 
         document.getElementById('input')?.classList.replace('text-white','text-red-500');
+        terminal.event({ ev: 'compl', s: false })
     }
 
     function handleGlobalKeyDown(event: KeyboardEvent) {
