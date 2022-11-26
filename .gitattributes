@@ -1,0 +1,3 @@
+dataset/samples/*
+dataset/out/*.txt
+dataset/words.txt
