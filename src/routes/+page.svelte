@@ -200,6 +200,9 @@
                 //@ts-ignore
                 inputField.value = '';
                 inputField.focus()
+
+                // important: Subsequent focus is for mobile purposes since mobile requires two focuses for some reason.
+                setTimeout(() => inputField.focus(), 500)
             }
 
             if (alwaysPlayAudio) {
