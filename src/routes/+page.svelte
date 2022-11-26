@@ -3,7 +3,7 @@
     import { Icon } from '@steeze-ui/svelte-icon'
     import { Eye, EyeSlash, ArrowPath, SpeakerWave } from '@steeze-ui/heroicons'
     import terminal from '$lib/logging'
-    import { reduce, hide } from '$lib/word'
+    import { reduce, hide, diff } from '$lib/word'
 
     let dataset: string[] = []
 
@@ -47,13 +47,7 @@
        },
         15 * 1000
     )
-
-    let fasterOfflineTimer = setInterval(() => {
-        if (!navigator.onLine && !offline) {
-            setOffline()
-        }
-    }, 2 * 1000)
-
+    let fasterOfflineTimer = setInterval(() => { if (!navigator.onLine && !offline) { setOffline() } }, 2 * 1000)
     onDestroy(() => { clearInterval(offlineTimer); clearInterval(fasterOfflineTimer); });
 
     onMount(async () => {
@@ -148,8 +142,8 @@
                 if (data != null) {
                     definition = data.at(0).meanings[0].definitions[0].definition
                 } else {
-                    definition = "No definition found.";
-                    throw { error: "No definition found, this exception is intentional." }
+                    definition = 'No definition found.';
+                    throw { error: 'No definition found, this exception is intentional.' }
                 }
             })
     }
@@ -161,7 +155,7 @@
             speech.text = word
 
             if (definition) {
-                speech.text = speech.text + ". " + definition + " " + word;
+                speech.text = speech.text + '. ' + definition + ' ' + word;
             }
 
             window.speechSynthesis.speak(speech); terminal.event({ ev: 'pl_au', text: speech.text })
@@ -178,17 +172,11 @@
         document.getElementById('container')?.classList.add('animate-pulse');
         
         try {
-            // Reset time statistics.
             start = -1;
             end = -1;
-
-            // Reset input.
             input = '';
             lastInput = '';
-
             hintShown = alwaysShowHint;
-            
-            // Find a new word and get the definition of it.
             let n = random()
 
             if (!offline) {
@@ -196,8 +184,6 @@
             }
 
             word = n;
-
-            // Reset the input field to its original state.
             const inputField = document.getElementById('input')
             disabled = false;
 
@@ -206,7 +192,6 @@
                 inputField.classList.remove('text-green-500', 'text-red-500')
                 //@ts-ignore
                 inputField.value = '';
-                // Focus on the input field.
                 inputField.focus()
             }
 
@@ -247,7 +232,7 @@
             start = Date.now(); terminal.event({ ev: 'tme', s: start });
         }
 
-        let difference = input.length > lastInput.length ? input.length - lastInput.length : lastInput.length - input.length;
+        let difference = diff(input, lastInput)
         if (difference >= 2 && input != '') {
             event.preventDefault(); input = lastInput; autoSuggestedDetected = true; terminal.event({ ev: 'ac', diff: difference });
             return

@@ -15,3 +15,7 @@ export function reduce(content: string): string {
 
     return newContents
 }
+
+export function diff(a: string, b: string): number {
+    return a.length > b.length ? a.length - b.length : b.length - a.length;
+}
