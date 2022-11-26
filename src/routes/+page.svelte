@@ -115,9 +115,11 @@
                 setOffline()
             }
 
-            speech = new SpeechSynthesisUtterance()
-            speech.lang = 'en'
-            speech.rate = 1.05
+            if (window.speechSynthesis != null) {
+                speech = new SpeechSynthesisUtterance()
+                speech.lang = 'en'
+                speech.rate = 1.05
+            }
 
             reset();
         } catch (ex) {
@@ -188,6 +190,7 @@
     }
 
     function audio() {
+        if (window.speechSynthesis == null) return
         if (window.speechSynthesis.speaking) return
         
         if (speech) {
@@ -367,7 +370,7 @@
             />
             <div class="flex flex-row gap-4">
                 <IconButton id="reset" icon={ArrowPath} on:click={reset} on:keydown={handleResetKeyDown}/>
-                <IconButton id="speak" icon={SpeakerWave} on:click={audio}/>
+                {#if window.speechSynthesis != null} <IconButton id="speak" icon={SpeakerWave} on:click={audio}/> {/if}
             </div>
             {#if end !== -1}
             <p class="font-light text-sm max-w-xl pt-4">{(end - start) / 1000} seconds</p>
