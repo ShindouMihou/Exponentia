@@ -12,6 +12,7 @@
 	import ShowSettings from "$lib/components/ShowSettings.svelte";
 	import Loading from "$lib/components/screens/Loading.svelte";
 	import Settings from "$lib/components/screens/Settings.svelte";
+	import InputField from "$lib/components/InputField.svelte";
 
     let dataset: string[] = []
 
@@ -226,47 +227,27 @@
         terminal.event({ ev: 'tog', opt: 'hint' })
     }
 
-    async function enter(event: KeyboardEvent) {
-        if (event.key === 'Enter' && input.length !== 0) {
-            event.preventDefault(); complete(); terminal.event({ ev: 'compl', input: input });
-        }
-
-        if (event.ctrlKey && (event.key === 'a' || event.key === 'A')) {
-            event.preventDefault(); input = ''; lastInput = ''; terminal.event({ ev: 'q_er' });
-        }
+    function cheated() {
+        input = lastInput; 
+        autoSuggestedDetected = true;
     }
 
-    async function timeAndQuickEnd(event: Event) {
-        input = input.trim()
-        if (start === -1) {
-            start = Date.now(); terminal.event({ ev: 'tme', s: start });
-        }
+    function erase() {
+        input = ''; 
+        lastInput = '';
+    }
 
-        let difference = diff(input, lastInput)
-        if (difference >= 2 && input != '') {
-            event.preventDefault(); input = lastInput; autoSuggestedDetected = true; terminal.event({ ev: 'ac', diff: difference });
-            return
-        }
-
-        lastInput = input;
-
-        if (autoSuggestedDetected) {
-            autoSuggestedDetected = false;
-        }
-
-        if ((quickEnd === true && input.toLowerCase() === word)) {
-            event.preventDefault(); complete(); terminal.event({ ev: 'qe', word: word})
-        }
+    function hideAutoSuggestionWarning() {
+        autoSuggestedDetected = false;
     }
 
     async function complete() {
         disabled = true;
         hintShown = true;
-
         reduced = word;
         end = Date.now();
 
-        if (input.toLowerCase() === word) {
+        if (input === word) {
             document.getElementById('input')?.classList.replace('text-white', 'text-green-500');
             terminal.event({ ev: 'compl', s: true })
             return;
@@ -324,23 +305,17 @@
             {#if !offline}
             <p class="font-light text-sm lowercase text-center max-w-xl">{definition}</p>
             {/if}
-            <!-- svelte-ignore a11y-autofocus -->
-            <input 
-                id="input"
-                type="text"
-                inputmode="email"
-                class="outline-none max-w-lg my-6 bg-black text-white duration-300 ease-in-out font-bold placeholder:text-gray-500 w-full text-2xl text-center" 
-                placeholder="word"
-                readonly={disabled}
-                bind:value={input}
-                on:input={timeAndQuickEnd}
-                on:keydown={enter}
-                on:paste={(event) => event.preventDefault()}
-                spellcheck={false}
-                autocapitalize={'off'}
-                autocomplete={'off'}
-                autocorrect={'off'}
-                enterkeyhint={'done'}
+            <InputField
+                isDisabled={disabled}
+                isQuickEndEnabled={quickEnd}
+                word={word}
+                bind:input={input}
+                bind:lastInput={lastInput}
+                bind:start={start}
+                on:cheated={cheated}
+                on:complete={complete}
+                on:erase={erase}
+                on:input={hideAutoSuggestionWarning}
             />
             <div class="flex flex-row gap-4">
                 <IconButton id="reset" icon={ArrowPath} on:click={reset} on:keydown={handleResetKeyDown}/>
