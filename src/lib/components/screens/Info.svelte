@@ -34,7 +34,7 @@
         </div>
         <div class="flex flex-row gap-2 mt-4">
             <OtherLink href="https://github.com/ShindouMihou" alt="GitHub" icon={Github}/>
-            <OtherLink href="https://producthunt.com/posts/Exponentia" alt="ProductHunt" color="text-[#DA552F]" icon={Producthunt}/>
+            <OtherLink href="https://producthunt.com/posts/exponentia" alt="ProductHunt" color="text-[#DA552F]" icon={Producthunt}/>
             <OtherLink href="mailto:hello@mihou.pw" alt="Email" icon={AtSymbol} color="bg-white text-black rounded-full"/>
         </div>
     </div>
