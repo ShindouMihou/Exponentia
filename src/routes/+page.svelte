@@ -34,7 +34,9 @@
 
     let alwaysShowHint = true;
     let alwaysPlayAudio = false;
+
     let quickEnd = true;
+    let quickNext = true;
 
     let lastInput = '';
     let autoSuggestedDetected = false
@@ -77,6 +79,7 @@
             hintShown = alwaysShowHint;
 
             quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
+            quickNext = (localStorage.getItem('quick_next') ?? 'true') === 'true'
             if (localStorage.getItem('version') == null) {
                 if (localStorage.getItem('dataset') != null) { localStorage.removeItem('dataset') }
             }
@@ -165,6 +168,13 @@
         toggle('quick_end', quickEnd);
 
         window.umami.trackEvent('Toggle Quick End', { value: quickEnd });
+    }
+
+    function toggleQuickNext() {
+        quickNext = !quickNext; 
+        toggle('quick_next', quickNext);
+
+        window.umami.trackEvent('Toggle Quick Next', { value: quickNext });
     }
 
     function navigate(to: 'PLAY' | 'SETTINGS' | 'INFO') {
@@ -288,6 +298,8 @@
     }
 
     async function complete() {
+        if (end !== -1) return
+
         disabled = true;
         hintShown = true;
         reduced = word;
@@ -315,6 +327,13 @@
             window.umami.trackEvent('Short Reset Focus')
         }
 
+        if (event.key === 'Enter' && quickNext === true && end !== -1 && ((end + 100) < Date.now())) {
+            event.preventDefault();
+            reset();
+
+            window.umami.trackEvent('Quick Next')
+        }
+
         if (event.key === '!') {
             event.preventDefault();
             toggleAlwaysShowHint();
@@ -328,6 +347,11 @@
         if (event.key === '#') {
             event.preventDefault();
             toggleAlwaysPlayAudio();
+        }
+
+        if (event.key === '$') {
+            event.preventDefault();
+            toggleQuickNext();
         }
     } 
 
@@ -394,10 +418,13 @@
             alwaysPlayAudio={alwaysPlayAudio} 
             alwaysShowHint={alwaysShowHint} 
             quickEnd={quickEnd}
+            quickNext={quickNext}
             on:audio={toggleAlwaysPlayAudio}
             on:hint={toggleAlwaysShowHint}
             on:quickend={toggleQuickEnd}
-            on:hide={toggleSettings}/>
+            on:hide={toggleSettings}
+            on:quicknext={toggleQuickNext}
+            />
     {:else if screen === 'INFO'}
         <Info on:hide={() => navigate('PLAY')}/>
     {/if}

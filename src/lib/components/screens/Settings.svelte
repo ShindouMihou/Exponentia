@@ -10,6 +10,7 @@
     export let alwaysShowHint: boolean;
     export let quickEnd: boolean;
     export let alwaysPlayAudio: boolean;
+    export let quickNext: boolean;
 
     function escape(event: KeyboardEvent) {
         if (event.key === 'Escape') {
@@ -46,5 +47,11 @@
             option={alwaysPlayAudio}
             keyCombination={'SHIFT + 3'}
             supported={window.speechSynthesis != null}/>
+        <ToggleableSetting 
+            on:click={() => dispatch('quicknext')}
+            name="Quick Next"
+            description="moves to the next word upon pressing the ENTER key after the current word is over."
+            option={quickNext}
+            keyCombination={'SHIFT + 4'}/>
     </div>
 </div>
