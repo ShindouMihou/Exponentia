@@ -61,6 +61,27 @@
         hintShown = alwaysShowHint;
 
         quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
+        if (localStorage.getItem('version') == null) {
+            if (localStorage.getItem('dataset') != null) { localStorage.removeItem('dataset') }
+        }
+
+        await fetch('/dataset/version.json')
+                .then((response) => response.json())
+                .then((data) => {
+                    const current = localStorage.getItem('version')
+                    if (current == null) {
+                        localStorage.setItem('version', data.version)
+                        return
+                    }
+
+                    const currentVersion =  Number.parseFloat(current)
+                    if (data.version > currentVersion) {
+                        console.log('A new version has been detected, emptying cache.')
+                        localStorage.setItem('version', data.version); localStorage.removeItem('dataset');
+                    }
+                })
+
+        console.log('Exponentia v' + localStorage.getItem('version'))
 
         if (localStorage.getItem('dataset') == null) {
             await fetch('/dataset/words.txt')
