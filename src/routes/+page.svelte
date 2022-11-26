@@ -121,7 +121,7 @@
 
             reset();
         } catch (ex) {
-            mountErrors = [...mountErrors, JSON.stringify(ex)]
+            mountErrors = [...mountErrors, (ex as string)]
         }
     });
 
