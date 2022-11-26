@@ -73,4 +73,5 @@
     autocomplete={'off'}
     autocorrect={'off'}
     enterkeyhint={'done'}
+    autofocus
 />
