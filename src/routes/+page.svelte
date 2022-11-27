@@ -2,7 +2,19 @@
 	import { onDestroy, onMount } from "svelte";
     import { ArrowPath, SpeakerWave, ChevronDown } from '@steeze-ui/heroicons'
     import terminal from '$lib/logging'
-    import { reduce, hide, diff } from '$lib/word'
+    import { reduce, hide } from '$lib/word'
+    import { 
+        word, 
+        isAlwaysPlayAudioEnabled, 
+        isAlwaysShowHintEnabled, 
+        isQuickEndEnabled, 
+        isQuickNextEnabled, 
+        input, 
+        lastInput,
+        start,
+        isDisabled,
+        sessionStatus
+    } from '$lib/store'
 	import { fade } from "svelte/transition";
     import Hint from "$lib/components/Hint.svelte";
 	import IconButton from "$lib/components/shared/IconButton.svelte";
@@ -16,32 +28,20 @@
 
     let dataset: string[] = []
 
-    let word: string = '';
-    $: reduced = reduce(word);
-    $: hidden = hide(word);
-    let input: string = '';
+    $: reduced = reduce($word);
+    $: hidden = hide($word);
 
-    let definition: string = 'Looking for the definition...';
+    const DEFAULT_DEFINITION = 'Looking for the definition...';
+    let definition: string = DEFAULT_DEFINITION;
 
     let hintShown = false;
-    let disabled = false;
 
-    let start: number = -1;
     let end: number = -1;
 
     let throttle = false;
     let offline = false;
 
-    let alwaysShowHint = true;
-    let alwaysPlayAudio = false;
-
-    let quickEnd = true;
-    let quickNext = true;
-
-    let lastInput = '';
     let autoSuggestedDetected = false
-
-    let isTracking = false
 
     let screen = 'PLAY';
 
@@ -52,8 +52,23 @@
        {
            if (navigator.onLine) {
                 fetch('/hello.txt')
-                    .then((response) => { if (response.ok)  { offline = false } else { if (!offline) { setOffline() } } })
-                    .catch((e) => { if (!offline) { setOffline() } })
+                    .then((response) => { 
+                        if (response.ok)  { 
+                            offline = false; 
+                            if (definition === DEFAULT_DEFINITION) {
+                                define($word); 
+                            } 
+                        } else { 
+                            if (!offline) { 
+                                setOffline() 
+                            } 
+                        } 
+                    })
+                    .catch((e) => { 
+                        if (!offline) { 
+                            setOffline() 
+                        } 
+                    })
            } else {
                if (!offline) {
                 setOffline();
@@ -73,13 +88,8 @@
                     trackView: (url: string, referrer: string = '') => {  },
                 }
             }
-            alwaysPlayAudio = localStorage.getItem('always_play_audio') === 'true'
-            isTracking = ( localStorage.getItem('is_tracking') ?? 'true') === 'true'
-            alwaysShowHint = (localStorage.getItem('always_show_hint') ?? 'true') === 'true'
-            hintShown = alwaysShowHint;
 
-            quickEnd = (localStorage.getItem('quick_end') ?? 'true') === 'true'
-            quickNext = (localStorage.getItem('quick_next') ?? 'true') === 'true'
+            hintShown = $isAlwaysShowHintEnabled;
             if (localStorage.getItem('version') == null) {
                 if (localStorage.getItem('dataset') != null) { localStorage.removeItem('dataset') }
             }
@@ -140,41 +150,29 @@
         hintShown = true;
     }
 
-    function toggle(key: string, value: boolean) {
-        localStorage.setItem(key, (value).toString())
-        terminal.event({ ev: 'tog', opt: key  })
-    }
-
     function toggleAlwaysShowHint() {
-        alwaysShowHint = !alwaysShowHint;
-        toggle('always_show_hint', alwaysShowHint);
+        $isAlwaysShowHintEnabled = !$isAlwaysShowHintEnabled;
 
         if (!offline) {
-            hintShown = alwaysShowHint;
+            hintShown = $isAlwaysShowHintEnabled;
         }
 
-        window.umami.trackEvent('Toggle Always Show Hint', { value: alwaysShowHint });
+        window.umami.trackEvent('Toggle Always Show Hint', { value: $isAlwaysShowHintEnabled });
     }
 
     function toggleAlwaysPlayAudio() {
-        alwaysPlayAudio = !alwaysPlayAudio; 
-        toggle('always_play_audio', alwaysPlayAudio);
-
-        window.umami.trackEvent('Toggle Always Play Audio', { value: alwaysPlayAudio });
+        $isAlwaysPlayAudioEnabled = !$isAlwaysPlayAudioEnabled
+        window.umami.trackEvent('Toggle Always Play Audio', { value: $isAlwaysPlayAudioEnabled });
     }
 
     function toggleQuickEnd() {
-        quickEnd = !quickEnd; 
-        toggle('quick_end', quickEnd);
-
-        window.umami.trackEvent('Toggle Quick End', { value: quickEnd });
+        $isQuickEndEnabled = !$isQuickEndEnabled;
+        window.umami.trackEvent('Toggle Quick End', { value: $isQuickEndEnabled });
     }
 
     function toggleQuickNext() {
-        quickNext = !quickNext; 
-        toggle('quick_next', quickNext);
-
-        window.umami.trackEvent('Toggle Quick Next', { value: quickNext });
+        $isQuickNextEnabled = !$isQuickNextEnabled;
+        window.umami.trackEvent('Toggle Quick Next', { value: $isQuickNextEnabled });
     }
 
     function navigate(to: 'PLAY' | 'SETTINGS' | 'INFO') {
@@ -209,21 +207,22 @@
         if (window.speechSynthesis.speaking) return
         
         if (speech) {
-            speech.text = word
+            speech.text = $word
 
             if (definition) {
-                speech.text = speech.text + '. ' + definition + ' ' + word;
+                speech.text = speech.text + '. ' + definition + ' ' + $word;
             }
 
             window.speechSynthesis.speak(speech); 
+
             terminal.event({ ev: 'pl_au', text: speech.text });
-            window.umami.trackEvent('Text-To-Speech', { text: word });
+            window.umami.trackEvent('Text-To-Speech', { text: $word });
         }
     }
 
     async function reset() {
         if (throttle) {
-            terminal.event('throttled()')
+            terminal.event('throttled')
             return;
         }
 
@@ -231,24 +230,25 @@
         document.getElementById('container')?.classList.add('animate-pulse');
         
         try {
-            start = -1;
+            $start = -1;
             end = -1;
-            input = '';
-            lastInput = '';
-            hintShown = alwaysShowHint;
+
+            $input = '';
+            $lastInput = '';
+
+            hintShown = $isAlwaysShowHintEnabled;
             let n = random()
 
             if (!offline) {
                 await define(n);
             }
 
-            word = n;
+            $word = n;
             const inputField = document.getElementById('input')
-            disabled = false;
+            $isDisabled = false;
 
             if (inputField) {
-                inputField.classList.add('text-white')
-                inputField.classList.remove('text-green-500', 'text-red-500')
+                $sessionStatus = 0
                 //@ts-ignore
                 inputField.value = '';
                 inputField.focus()
@@ -257,14 +257,14 @@
                 setTimeout(() => inputField.focus(), 500)
             }
 
-            if (alwaysPlayAudio) {
+            if ($isAlwaysPlayAudioEnabled) {
                 if (window.speechSynthesis.speaking) window.speechSynthesis.cancel()
                 setTimeout(() => audio(), 150)
             }
 
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
-            terminal.event({ ev: 'res', word: word, def: definition })
-            window.umami.trackEvent('New Word', { new: word });
+            terminal.event({ ev: 'res', word: $word, def: definition })
+            window.umami.trackEvent('New Word', { new: $word });
         } catch (e) {
             throttle = false;
             await reset()
@@ -280,15 +280,15 @@
     }
 
     function cheated() {
-        input = lastInput; 
+        $input = $lastInput; 
         autoSuggestedDetected = true;
 
         window.umami.trackEvent('Anti-Cheat Triggered')
     }
 
     function erase() {
-        input = ''; 
-        lastInput = '';
+        $input = ''; 
+        $lastInput = '';
 
         window.umami.trackEvent('Quick Erase')
     }
@@ -300,23 +300,22 @@
     async function complete() {
         if (end !== -1) return
 
-        disabled = true;
+        $isDisabled = true;
         hintShown = true;
-        reduced = word;
+
+        reduced = $word;
         end = Date.now();
 
-        if (input === word) {
-            document.getElementById('input')?.classList.replace('text-white', 'text-green-500');
-
+        if ($input === $word) {
+            $sessionStatus = 1
             terminal.event({ ev: 'compl', s: true })
-            window.umami.trackEvent('Spelled Correctly', { word: word, input: input })
+            window.umami.trackEvent('Spelled Correctly', { word: $word, input: $input })
             return;
         }
 
-        document.getElementById('input')?.classList.replace('text-white','text-red-500');
-
+        $sessionStatus = 2
         terminal.event({ ev: 'compl', s: false })
-        window.umami.trackEvent('Spelled Incorrectly', { word: word, input: input })
+        window.umami.trackEvent('Spelled Incorrectly', { word: $word, input: $input })
     }
 
     function handleGlobalKeyDown(event: KeyboardEvent) {
@@ -327,7 +326,7 @@
             window.umami.trackEvent('Short Reset Focus')
         }
 
-        if (event.key === 'Enter' && quickNext === true && end !== -1 && ((end + 100) < Date.now())) {
+        if (event.key === 'Enter' && $isQuickNextEnabled === true && end !== -1 && ((end + 100) < Date.now())) {
             event.preventDefault();
             reset();
 
@@ -367,7 +366,7 @@
 
 <svelte:window on:keydown={handleGlobalKeyDown}/>
 
-{#if word === ''}
+{#if $word === ''}
     {#if mountErrors.length === 0}
         <Loading/>
     {:else}
@@ -386,12 +385,6 @@
             <p class="font-light text-sm lowercase text-center max-w-xl">{definition}</p>
             {/if}
             <InputField
-                isDisabled={disabled}
-                isQuickEndEnabled={quickEnd}
-                word={word}
-                bind:input={input}
-                bind:lastInput={lastInput}
-                bind:start={start}
                 on:cheated={cheated}
                 on:complete={complete}
                 on:erase={erase}
@@ -402,7 +395,7 @@
                 {#if window.speechSynthesis != null} <IconButton id="speak" icon={SpeakerWave} on:click={audio}/> {/if}
             </div>
             {#if end !== -1}
-            <p class="font-light text-sm max-w-xl pt-4">{(end - start) / 1000} seconds</p>
+            <p class="font-light text-sm max-w-xl pt-4">{(end - $start) / 1000} seconds</p>
             {/if}
         </div>
      </div>
@@ -410,15 +403,11 @@
         <div class="flex flex-row gap-1 items-center">
             <Title on:show={() => navigate('INFO')}/>
             <ShowSettings on:click={toggleSettings}/>
-            {#if offline}<p class="bg-red p-1 text-black text-xs font-light bg-red-500 hover:opacity-80 duration-300 ease-in-out" transition:fade>OFFLINE</p>{/if}
+            {#if offline}<p class="bg-red p-1 text-black text-xs font-light bg-red-500 hover:opacity-80 duration-300 ease-in-out" in:fade>OFFLINE</p>{/if}
         </div>
     </div>
     {:else if screen === 'SETTINGS'}
         <Settings 
-            alwaysPlayAudio={alwaysPlayAudio} 
-            alwaysShowHint={alwaysShowHint} 
-            quickEnd={quickEnd}
-            quickNext={quickNext}
             on:audio={toggleAlwaysPlayAudio}
             on:hint={toggleAlwaysShowHint}
             on:quickend={toggleQuickEnd}
