@@ -84,7 +84,7 @@
         try {
             if (window.umami == null) {
                 window.umami = {
-                    trackEvent: (event: string, data: any = {}) => {  },
+                    track: (event: string, data: any = {}) => {  },
                     trackView: (url: string, referrer: string = '') => {  },
                 }
             }
@@ -100,7 +100,7 @@
                     .then((data) => {
                         const current = localStorage.getItem('version')
 
-                        window.umami.trackEvent('Version Re-check', { current: current, server: data.version});
+                        window.umami.track('Version Re-check', { current: current, server: data.version});
                         if (current == null) {
                             localStorage.setItem('version', data.version)
                             return
@@ -116,7 +116,7 @@
             terminal.info({ name: 'Exponentia', version: localStorage.getItem('version'), scm: 'https://github.com/ShindouMihou/Exponentia'})
             if (localStorage.getItem('dataset') == null) {
                 terminal.network('words.txt')
-                window.umami.trackEvent('Dataset Collect');
+                window.umami.track('Dataset Collect');
                 await fetch('/dataset/words.txt')
                     .then((response) => response.text())
                     .then((text) => localStorage.setItem('dataset', text));
@@ -157,27 +157,27 @@
             hintShown = $isAlwaysShowHintEnabled;
         }
 
-        window.umami.trackEvent('Toggle Always Show Hint', { value: $isAlwaysShowHintEnabled });
+        window.umami.track('Toggle Always Show Hint', { value: $isAlwaysShowHintEnabled });
     }
 
     function toggleAlwaysPlayAudio() {
         $isAlwaysPlayAudioEnabled = !$isAlwaysPlayAudioEnabled
-        window.umami.trackEvent('Toggle Always Play Audio', { value: $isAlwaysPlayAudioEnabled });
+        window.umami.track('Toggle Always Play Audio', { value: $isAlwaysPlayAudioEnabled });
     }
 
     function toggleQuickEnd() {
         $isQuickEndEnabled = !$isQuickEndEnabled;
-        window.umami.trackEvent('Toggle Quick End', { value: $isQuickEndEnabled });
+        window.umami.track('Toggle Quick End', { value: $isQuickEndEnabled });
     }
 
     function toggleQuickNext() {
         $isQuickNextEnabled = !$isQuickNextEnabled;
-        window.umami.trackEvent('Toggle Quick Next', { value: $isQuickNextEnabled });
+        window.umami.track('Toggle Quick Next', { value: $isQuickNextEnabled });
     }
 
     function navigate(to: 'PLAY' | 'SETTINGS' | 'INFO') {
         screen = to;
-        window.umami.trackEvent('Navigate', { screen: to });
+        window.umami.track('Navigate', { screen: to });
     }
 
     function toggleSettings() {
@@ -216,7 +216,7 @@
             window.speechSynthesis.speak(speech); 
 
             terminal.event({ ev: 'pl_au', text: speech.text });
-            window.umami.trackEvent('Text-To-Speech', { text: $word });
+            window.umami.track('Text-To-Speech', { text: $word });
         }
     }
 
@@ -264,7 +264,7 @@
 
             setTimeout(() => { throttle = false; document.getElementById('container')?.classList.remove('animate-pulse'); }, 150);
             terminal.event({ ev: 'res', word: $word, def: definition })
-            window.umami.trackEvent('New Word', { new: $word });
+            window.umami.track('New Word', { new: $word });
         } catch (e) {
             throttle = false;
             await reset()
@@ -283,14 +283,14 @@
         $input = $lastInput; 
         autoSuggestedDetected = true;
 
-        window.umami.trackEvent('Anti-Cheat Triggered')
+        window.umami.track('Anti-Cheat Triggered')
     }
 
     function erase() {
         $input = ''; 
         $lastInput = '';
 
-        window.umami.trackEvent('Quick Erase')
+        window.umami.track('Quick Erase')
     }
 
     function hideAutoSuggestionWarning() {
@@ -309,13 +309,13 @@
         if ($input === $word) {
             $sessionStatus = 1
             terminal.event({ ev: 'compl', s: true })
-            window.umami.trackEvent('Spelled Correctly', { word: $word, input: $input })
+            window.umami.track('Spelled Correctly', { word: $word, input: $input })
             return;
         }
 
         $sessionStatus = 2
         terminal.event({ ev: 'compl', s: false })
-        window.umami.trackEvent('Spelled Incorrectly', { word: $word, input: $input })
+        window.umami.track('Spelled Incorrectly', { word: $word, input: $input })
     }
 
     function handleGlobalKeyDown(event: KeyboardEvent) {
@@ -323,14 +323,14 @@
             event.preventDefault();
             document.getElementById('reset')?.focus();
 
-            window.umami.trackEvent('Short Reset Focus')
+            window.umami.track('Short Reset Focus')
         }
 
         if (event.key === 'Enter' && $isQuickNextEnabled === true && end !== -1 && ((end + 100) < Date.now())) {
             event.preventDefault();
             reset();
 
-            window.umami.trackEvent('Quick Next')
+            window.umami.track('Quick Next')
         }
 
         if (event.key === '!') {
