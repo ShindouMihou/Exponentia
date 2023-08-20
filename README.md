@@ -13,7 +13,7 @@ Exponentia is a minimal, straight-to-the-point spelling test that works both onl
 > 
 > **DESKTOP CLIENT IS AVAILABLE**
 > You can now download a desktop client for Exponie, allowing for offline playing!
-> - [`Download Now`](https://github.com/ShindouMihou/exponie-desktop)
+> - [`Download Now`](https://github.com/ShindouMihou/exponie-desktop/releases)
 >
 
 ### 🥳 Motivation
